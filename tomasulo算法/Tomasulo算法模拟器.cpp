@@ -8,7 +8,6 @@
 #include <windows.h>
 #include <cstdlib>
 int t;
-
 std::queue<int> q;//指令队列（流出队列） 
 struct st
 {
@@ -18,19 +17,18 @@ struct instr  //存放指令的各个细节
 {
 	std::string op;
 	int fi,fj,fk,time,device,vj,vk,qj,qk,a;  //device为保留站 time是指令执行周期数-load:2个时钟周期；加、减法:2个时钟周期；乘法:10个时钟周期；除法:20个时钟周期
-	int issue,exeution,write;
+	int issue,execution,write;
 	int begin,result1,result2,result3,result4,result5,result6,flag1,flag2; //begin代表正在执行 result存储写入的结果 flag为写结果的标记
 	std::string name;
 } instruction[100];
-
-int reg[32];//该寄存器将接收对应保留站的结果 
-int device[8];//存放占用该保留站的指令号
-int result[3][32];   //存放寄存器的值，即保留站device产生的结果
 std::set<int> step[6];//存放各个阶段的指令队列 
 std::set<int>::iterator it,ite;//迭代器，用来枚举 
 std::map<std::string,int> map;//用来做映射，将数字与指代的指令的操作码联系 
 std::map<int,std::string> mapp;//用来做映射，将数字与指代的保留站联系
 
+int reg[32];//该寄存器将接收对应保留站的结果 
+int result[3][32];   //存放寄存器的值，即保留站device产生的结果
+int device[8];//存放占用该保留站的指令号
 //初始化
 
 inline void init()
@@ -51,7 +49,6 @@ inline void read()
 		ch = getchar();
 		if (ch == '\n') break;	
 	}
-	
 	for(int i = 1;i <= t;i++)
 	{
 		std::string s;
@@ -199,7 +196,7 @@ inline void print(int x)
 			printf("|");
 		}
 		
-		if (instruction[i].exeution != 0) printf("%19d|",instruction[i].exeution); //执行完毕
+		if (instruction[i].execution != 0) printf("%19d|",instruction[i].execution); //执行完毕
 		else if(instruction[i].begin>0){
 			for(int j = 1;j <= 11;j++) printf(" ");
 			printf("正在执行");
@@ -217,7 +214,11 @@ inline void print(int x)
 			for(int j = 1;j <= 12;j++) printf(" ");
 			printf("|");
 		}
+		
 		printf("\n");
+		
+		
+		
 	}
 	printf("\n");
 	//输出保留站内容 
@@ -254,8 +255,8 @@ inline void print(int x)
 			printf("|     ");
 			}
 
-			//printf("%d,%d",instruction[device[i]].begin,instruction[device[i]].exeution); 
-			if (instruction[i].begin > 0 || instruction[i].exeution != 0) printf("|R[R%d]+%-4d|",instruction[device[i]].fj,instruction[device[i]].a); //正在执行 计算有效地址放入A字段 
+			//printf("%d,%d",instruction[device[i]].begin,instruction[device[i]].execution); 
+			if (instruction[i].begin > 0 || instruction[i].execution != 0) printf("|R[R%d]+%-4d|",instruction[device[i]].fj,instruction[device[i]].a); //正在执行 计算有效地址放入A字段 
 			else printf("|%-10d|",instruction[device[i]].a);     //最后放入 a 保证字段对齐
 		}
 		
@@ -436,7 +437,7 @@ inline void procedure()
 				
 				if (instruction[x].time == 0)
 			{
-				instruction[x].exeution = time; //达到所需的执行周期，执行完毕之后，将执行完的时钟周期数放到指令的结构体的exeution里保存
+				instruction[x].execution = time; //达到所需的执行周期，执行完毕之后，将执行完的时钟周期数放到指令的结构体的execution里保存
 				instruction[x].begin=0;
 				//将执行阶段完成的指令x放入写结果队列，并从执行队列删除 
 				now.push((st){x,3});
@@ -500,7 +501,6 @@ inline void procedure()
 				now.push((st){x,4});	
 				break;  //控制一个周期最多只有一条指令写结果
 		}
-		
 				//执行该指令周期的队列更新 
 		while(!now.empty())
 		{
